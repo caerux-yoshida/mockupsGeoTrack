@@ -21,6 +21,8 @@
       <section class="controls">
         <p id="info">登録地点を表示しています。</p>
         <button id="btn-update">登録地点を現在地で更新する</button>
+        <button id="btn-save" style="display:none; margin-left:8px">確定して登録</button>
+        <button id="btn-cancel" style="display:none; margin-left:8px">キャンセル</button>
       </section>
       <div id="map" class="map"></div>
     </main>
@@ -31,6 +33,8 @@
       document.addEventListener('DOMContentLoaded', function () {
         const info = document.getElementById('info');
         const btn = document.getElementById('btn-update');
+        const btnSave = document.getElementById('btn-save');
+        const btnCancel = document.getElementById('btn-cancel');
 
         const stored = getStoredLocation();
         const center = stored ? [stored.lat, stored.lon] : DEFAULT_TOKYO_CENTER;
@@ -39,17 +43,44 @@
         if (stored) addOrUpdateUserMarker(map, stored.lat, stored.lon, 'あなたの登録地点');
         else info.textContent = '現在、登録地点はありません。';
 
+        let adjustableMarker = null;
         btn.addEventListener('click', function () {
           info.textContent = '位置情報取得中…許可ダイアログを確認してください。';
-          requestAndSaveLocation()
+          requestCurrentPosition()
             .then(loc => {
-              info.textContent = `登録を更新しました: ${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}`;
+              info.textContent = '取得しました。ピンをドラッグして位置を調整してください。';
               map.setView([loc.lat, loc.lon], 15);
-              addOrUpdateUserMarker(map, loc.lat, loc.lon, 'あなたの登録地点');
+              adjustableMarker = createDraggableMarker(map, loc.lat, loc.lon, 'ドラッグで位置を調整');
+              btnSave.style.display = '';
+              btnCancel.style.display = '';
             })
             .catch(err => {
-              info.textContent = '位置情報の取得に失敗しました。';
+              info.textContent = '位置情報を取得できません。東京都付近で調整してください。';
+              map.setView(DEFAULT_TOKYO_CENTER, 13);
+              adjustableMarker = createDraggableMarker(map, DEFAULT_TOKYO_CENTER[0], DEFAULT_TOKYO_CENTER[1], 'ドラッグで位置を調整');
+              btnSave.style.display = '';
+              btnCancel.style.display = '';
             });
+        });
+
+        btnSave.addEventListener('click', function (){
+          if (!adjustableMarker){ alert('保存する位置がありません'); return; }
+          const pos = getMarkerLatLng(adjustableMarker);
+          const saved = saveLocation(pos.lat, pos.lon);
+          addOrUpdateUserMarker(map, pos.lat, pos.lon, 'あなたの登録地点');
+          info.textContent = `登録を更新しました: ${saved.lat.toFixed(6)}, ${saved.lon.toFixed(6)}`;
+          removeAdjustableMarker(map);
+          adjustableMarker = null;
+          btnSave.style.display = 'none';
+          btnCancel.style.display = 'none';
+        });
+
+        btnCancel.addEventListener('click', function (){
+          removeAdjustableMarker(map);
+          adjustableMarker = null;
+          btnSave.style.display = 'none';
+          btnCancel.style.display = 'none';
+          if (stored) map.setView([stored.lat, stored.lon], 15);
         });
       });
     </script>

@@ -21,6 +21,8 @@
       <section class="controls">
         <p id="status">位置情報未登録です。</p>
         <button id="btn-get-location">現在地を取得して登録する</button>
+        <button id="btn-save-location" style="display:none; margin-left:8px">確定して登録</button>
+        <button id="btn-cancel-location" style="display:none; margin-left:8px">キャンセル</button>
       </section>
 
       <div id="map" class="map" aria-label="地図"></div>
@@ -32,7 +34,9 @@
       // Page init for index.html
       document.addEventListener('DOMContentLoaded', function () {
         const statusEl = document.getElementById('status');
-        const btn = document.getElementById('btn-get-location');
+  const btn = document.getElementById('btn-get-location');
+  const btnSave = document.getElementById('btn-save-location');
+  const btnCancel = document.getElementById('btn-cancel-location');
 
         function updateStatus() {
           const stored = getStoredLocation();
@@ -49,19 +53,45 @@
         const map = createMap('map', center, 13);
         if (stored) addOrUpdateUserMarker(map, stored.lat, stored.lon, 'あなたの登録地点');
 
+        let adjustableMarker = null;
         btn.addEventListener('click', function () {
           statusEl.textContent = '位置情報取得中… ブラウザの許可ダイアログを確認してください。';
-          requestAndSaveLocation()
+          requestCurrentPosition()
             .then(loc => {
-              updateStatus();
+              statusEl.textContent = '位置が取得されました。ピンをドラッグして調整し、「確定して登録」を押してください。';
               map.setView([loc.lat, loc.lon], 15);
-              addOrUpdateUserMarker(map, loc.lat, loc.lon, 'あなたの登録地点');
+              adjustableMarker = createDraggableMarker(map, loc.lat, loc.lon, 'ドラッグで位置を調整');
+              btnSave.style.display = '';
+              btnCancel.style.display = '';
             })
             .catch(err => {
-              // error already handled in function; center to default
-              updateStatus();
+              // on error (including permission denied), fall back to default and allow adjustment there
+              statusEl.textContent = '位置情報を取得できません。東京都付近を表示します。ピンで位置を調整できます。';
               map.setView(DEFAULT_TOKYO_CENTER, 13);
+              adjustableMarker = createDraggableMarker(map, DEFAULT_TOKYO_CENTER[0], DEFAULT_TOKYO_CENTER[1], 'ドラッグで位置を調整');
+              btnSave.style.display = '';
+              btnCancel.style.display = '';
             });
+        });
+
+        btnSave.addEventListener('click', function (){
+          if (!adjustableMarker){ alert('保存する位置がありません'); return; }
+          const pos = getMarkerLatLng(adjustableMarker);
+          const saved = saveLocation(pos.lat, pos.lon);
+          addOrUpdateUserMarker(map, pos.lat, pos.lon, 'あなたの登録地点');
+          statusEl.textContent = `登録済み: ${saved.lat.toFixed(6)}, ${saved.lon.toFixed(6)}`;
+          removeAdjustableMarker(map);
+          adjustableMarker = null;
+          btnSave.style.display = 'none';
+          btnCancel.style.display = 'none';
+        });
+
+        btnCancel.addEventListener('click', function (){
+          removeAdjustableMarker(map);
+          adjustableMarker = null;
+          btnSave.style.display = 'none';
+          btnCancel.style.display = 'none';
+          updateStatus();
         });
 
         updateStatus();

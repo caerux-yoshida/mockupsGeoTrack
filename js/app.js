@@ -50,6 +50,37 @@ function addOrUpdateTempMarker(map, lat, lon, label){
   }
 }
 
+// Create a draggable marker for user adjustment (not saved until explicitly saved)
+function createDraggableMarker(map, lat, lon, label){
+  if (!map) return null;
+  // remove existing adjustable
+  if (map._geotrackMarkers.adjustable){
+    try{ map.removeLayer(map._geotrackMarkers.adjustable); }catch(e){}
+    map._geotrackMarkers.adjustable = null;
+  }
+  const marker = L.marker([lat, lon], { draggable:true }).addTo(map).bindPopup(label || 'ドラッグで位置を調整').openPopup();
+  marker.on('dragend', function(e){
+    const p = e.target.getLatLng();
+    marker.setPopupContent(`${(p.lat).toFixed(6)}, ${(p.lng).toFixed(6)}`);
+  });
+  map._geotrackMarkers.adjustable = marker;
+  return marker;
+}
+
+function removeAdjustableMarker(map){
+  if (!map) return;
+  if (map._geotrackMarkers.adjustable){
+    try{ map.removeLayer(map._geotrackMarkers.adjustable); }catch(e){}
+    map._geotrackMarkers.adjustable = null;
+  }
+}
+
+function getMarkerLatLng(marker){
+  if (!marker) return null;
+  const p = marker.getLatLng();
+  return { lat: p.lat, lon: p.lng };
+}
+
 // Request and save location (used for registration flows)
 function requestAndSaveLocation(){
   return new Promise((resolve, reject) => {
