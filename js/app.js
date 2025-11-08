@@ -203,10 +203,10 @@ function showDialog(title, message, buttons) {
   });
 }
 
-// 位置情報の利用確認ダイアログを表示
-async function showLocationConfirmDialog() {
+// 初期設定時の位置情報利用確認ダイアログ
+async function showInitialLocationConfirmDialog() {
   const result = await showDialog(
-    '位置情報の利用について',
+    '初期設定',
     '現在地を自動で表示させる場合には、位置情報が必要です。',
     [
       { text: 'OK', value: true, primary: true },
@@ -234,51 +234,70 @@ function showLocationDisabledDialog() {
   );
 }
 
-async function requestCurrentPosition(){
-  return new Promise(async (resolve, reject) => {
-    if (!navigator.geolocation){ 
-      await showDialog(
-        'エラー',
-        'このブラウザは位置情報に対応していません。',
-        [{ text: '閉じる', value: 'close', primary: true }]
-      );
-      reject(new Error('no-geolocation')); 
-      return; 
-    }
+// 初期設定用の位置情報取得（確認ダイアログ付き）
+async function requestInitialPosition() {
+  if (!navigator.geolocation) {
+    await showDialog(
+      'エラー',
+      'このブラウザは位置情報に対応していません。',
+      [{ text: '閉じる', value: 'close', primary: true }]
+    );
+    throw new Error('no-geolocation');
+  }
 
-    const permissionState = await checkGeolocationPermission();
-    
-    // 既に許可されている場合は直接取得
-    if (permissionState === 'granted') {
-      getCurrentPosition();
-      return;
-    }
+  // まず初期設定の確認ダイアログを表示
+  const shouldProceed = await showInitialLocationConfirmDialog();
+  if (!shouldProceed) {
+    throw new Error('user-cancelled');
+  }
 
-    // 初回または不明な場合は確認ダイアログを表示
-    if (permissionState === 'prompt' || permissionState === 'unknown') {
-      const shouldProceed = await showLocationConfirmDialog();
-      if (!shouldProceed) {
-        reject(new Error('user-cancelled'));
-        return;
-      }
-    }
+  // 位置情報を取得（このときブラウザのパーミッション確認が表示される）
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      async err => {
+        if (err.code === err.PERMISSION_DENIED) {
+          await showPermissionDeniedDialog();
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          await showLocationDisabledDialog();
+        }
+        reject(err);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
 
-    function getCurrentPosition() {
-      navigator.geolocation.getCurrentPosition(
-        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-        async err => {
-          if (err.code === err.PERMISSION_DENIED) {
-            await showPermissionDeniedDialog();
-          } else if (err.code === err.POSITION_UNAVAILABLE) {
-            await showLocationDisabledDialog();
-          }
-          reject(err);
-        },
-        { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
-      );
-    }
+// 通常の位置情報取得（既に許可されている場合はそのまま取得）
+async function requestCurrentPosition() {
+  if (!navigator.geolocation) {
+    await showDialog(
+      'エラー',
+      'このブラウザは位置情報に対応していません。',
+      [{ text: '閉じる', value: 'close', primary: true }]
+    );
+    throw new Error('no-geolocation');
+  }
 
-    getCurrentPosition();
+  const permissionState = await checkGeolocationPermission();
+  if (permissionState === 'denied') {
+    await showPermissionDeniedDialog();
+    throw new Error('permission-denied');
+  }
+
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      async err => {
+        if (err.code === err.PERMISSION_DENIED) {
+          await showPermissionDeniedDialog();
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          await showLocationDisabledDialog();
+        }
+        reject(err);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   });
 }
 
