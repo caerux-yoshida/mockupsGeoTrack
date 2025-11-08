@@ -16,6 +16,62 @@ main{ padding:8px; height: calc(100% - 86px); display:flex; flex-direction:colum
 button{ padding:10px 14px; font-size:1rem; border-radius:6px; border:1px solid #ddd; background:#fff }
 .map{ flex:1; min-height:300px; border-radius:6px; overflow:hidden }
 
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 90%;
+  width: 320px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.dialog-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0 0 12px 0;
+}
+
+.dialog-message {
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog-buttons button {
+  min-width: 80px;
+  padding: 8px 16px;
+}
+
+.btn-primary {
+  background: #0b5cff;
+  color: white;
+  border: none;
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+}
+
 /* small screens */
 @media(min-width:700px){
   header h1{ font-size:1.3rem }
