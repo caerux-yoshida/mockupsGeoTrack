@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>GeoTrack - 初期設定</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-sA+e2tGv0V6w0Jgq0p2Q3W0M0pQb+g2h5rj2S3FhP4s=" crossorigin=""/>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>GeoTrack - 初期設定</h1>
+      <nav>
+        <a href="/index.html">初期設定</a>
+        <a href="/page2.html">他ユーザー表示</a>
+        <a href="/page3.html">登録場所の変更</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="controls">
+        <p id="status">位置情報未登録です。</p>
+        <button id="btn-get-location">現在地を取得して登録する</button>
+      </section>
+
+      <div id="map" class="map" aria-label="地図"></div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-o9N1j8d1t0+8gKk0V4n0p0s3w5qLk9l+M5v9X+Z9E1M=" crossorigin=""></script>
+    <script src="/js/app.js"></script>
+    <script>
+      // Page init for index.html
+      document.addEventListener('DOMContentLoaded', function () {
+        const statusEl = document.getElementById('status');
+        const btn = document.getElementById('btn-get-location');
+
+        function updateStatus() {
+          const stored = getStoredLocation();
+          if (stored) {
+            statusEl.textContent = `登録済み: ${stored.lat.toFixed(6)}, ${stored.lon.toFixed(6)}`;
+          } else {
+            statusEl.textContent = '位置情報未登録です。';
+          }
+        }
+
+        // initialize map centered on stored or default
+        const stored = getStoredLocation();
+        const center = stored ? [stored.lat, stored.lon] : DEFAULT_TOKYO_CENTER;
+        const map = createMap('map', center, 13);
+        if (stored) addOrUpdateUserMarker(map, stored.lat, stored.lon, 'あなたの登録地点');
+
+        btn.addEventListener('click', function () {
+          statusEl.textContent = '位置情報取得中… ブラウザの許可ダイアログを確認してください。';
+          requestAndSaveLocation()
+            .then(loc => {
+              updateStatus();
+              map.setView([loc.lat, loc.lon], 15);
+              addOrUpdateUserMarker(map, loc.lat, loc.lon, 'あなたの登録地点');
+            })
+            .catch(err => {
+              // error already handled in function; center to default
+              updateStatus();
+              map.setView(DEFAULT_TOKYO_CENTER, 13);
+            });
+        });
+
+        updateStatus();
+      });
+    </script>
+  </body>
+</html>

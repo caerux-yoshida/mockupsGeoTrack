@@ -1,0 +1,24 @@
+/* Basic styles for mobile-first layout */
+html,body{
+  height:100%;
+  margin:0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif;
+}
+header{
+  padding:12px;
+  background:#0b5cff;
+  color:white;
+}
+header h1{ margin:0 0 8px 0; font-size:1.1rem }
+nav a{ color:white; margin-right:10px; text-decoration:none }
+main{ padding:8px; height: calc(100% - 86px); display:flex; flex-direction:column }
+.controls{ margin-bottom:8px }
+button{ padding:10px 14px; font-size:1rem; border-radius:6px; border:1px solid #ddd; background:#fff }
+.map{ flex:1; min-height:300px; border-radius:6px; overflow:hidden }
+
+/* small screens */
+@media(min-width:700px){
+  header h1{ font-size:1.3rem }
+}
+
+.leaflet-container{ width:100%; height:100% }
