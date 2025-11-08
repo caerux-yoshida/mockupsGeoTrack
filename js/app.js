@@ -81,6 +81,42 @@ function getMarkerLatLng(marker){
   return { lat: p.lat, lon: p.lng };
 }
 
+// Enable tap-to-place marker flow: place initial marker at (lat, lon); user can tap map to move it.
+// Returns the marker created and stores handler reference on map to allow removal.
+function enableTapToPlaceMarker(map, lat, lon, label){
+  if (!map) return null;
+  // remove existing adjustable and any previous tap listener
+  removeAdjustableMarker(map);
+  if (map._geotrackMarkers._tapListener){
+    map.off('click', map._geotrackMarkers._tapListener);
+    map._geotrackMarkers._tapListener = null;
+  }
+
+  const marker = L.marker([lat, lon], { draggable:false }).addTo(map).bindPopup(label || 'タップで位置を変更').openPopup();
+  marker.setPopupContent(`${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+  map._geotrackMarkers.adjustable = marker;
+
+  const listener = function(e){
+    const p = e.latlng;
+    if (map._geotrackMarkers.adjustable){
+      map._geotrackMarkers.adjustable.setLatLng(p).setPopupContent(`${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`).openPopup();
+    } else {
+      map._geotrackMarkers.adjustable = L.marker([p.lat, p.lng]).addTo(map).bindPopup(`${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`).openPopup();
+    }
+  };
+  map.on('click', listener);
+  map._geotrackMarkers._tapListener = listener;
+  return marker;
+}
+
+function disableTapToPlace(map){
+  if (!map) return;
+  if (map._geotrackMarkers._tapListener){
+    map.off('click', map._geotrackMarkers._tapListener);
+    map._geotrackMarkers._tapListener = null;
+  }
+}
+
 // Request and save location (used for registration flows)
 function requestAndSaveLocation(){
   return new Promise((resolve, reject) => {

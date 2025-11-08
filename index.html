@@ -57,25 +57,26 @@
         btn.addEventListener('click', function () {
           statusEl.textContent = '位置情報取得中… ブラウザの許可ダイアログを確認してください。';
           requestCurrentPosition()
-            .then(loc => {
-              statusEl.textContent = '位置が取得されました。ピンをドラッグして調整し、「確定して登録」を押してください。';
-              map.setView([loc.lat, loc.lon], 15);
-              adjustableMarker = createDraggableMarker(map, loc.lat, loc.lon, 'ドラッグで位置を調整');
-              btnSave.style.display = '';
-              btnCancel.style.display = '';
-            })
-            .catch(err => {
-              // on error (including permission denied), fall back to default and allow adjustment there
-              statusEl.textContent = '位置情報を取得できません。東京都付近を表示します。ピンで位置を調整できます。';
-              map.setView(DEFAULT_TOKYO_CENTER, 13);
-              adjustableMarker = createDraggableMarker(map, DEFAULT_TOKYO_CENTER[0], DEFAULT_TOKYO_CENTER[1], 'ドラッグで位置を調整');
-              btnSave.style.display = '';
-              btnCancel.style.display = '';
-            });
+              .then(loc => {
+                statusEl.textContent = '位置が取得されました。地図をタップしてピンを立て、確定してください。';
+                map.setView([loc.lat, loc.lon], 16);
+                adjustableMarker = enableTapToPlaceMarker(map, loc.lat, loc.lon, 'タップで位置を変更');
+                btnSave.style.display = '';
+                btnCancel.style.display = '';
+              })
+              .catch(err => {
+                // on error (including permission denied), fall back to default and allow adjustment there
+                statusEl.textContent = '位置情報を取得できません。東京都付近を表示します。地図をタップしてピンを立ててください。';
+                map.setView(DEFAULT_TOKYO_CENTER, 13);
+                adjustableMarker = enableTapToPlaceMarker(map, DEFAULT_TOKYO_CENTER[0], DEFAULT_TOKYO_CENTER[1], 'タップで位置を変更');
+                btnSave.style.display = '';
+                btnCancel.style.display = '';
+              });
         });
 
         btnSave.addEventListener('click', function (){
-          if (!adjustableMarker){ alert('保存する位置がありません'); return; }
+          if (!adjustableMarker){ alert('保存する位置がありません（地図をタップしてピンを置いてください）'); return; }
+          disableTapToPlace(map);
           const pos = getMarkerLatLng(adjustableMarker);
           const saved = saveLocation(pos.lat, pos.lon);
           addOrUpdateUserMarker(map, pos.lat, pos.lon, 'あなたの登録地点');
