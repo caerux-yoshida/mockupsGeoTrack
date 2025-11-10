@@ -68,4 +68,46 @@ python3 -m http.server 8000
 2. GitHub リポジトリの Settings → Pages で公開ブランチを選択します（通常 `main` の `/ (root)`）。
 3. 公開された `.github.io` ドメインは HTTPS 対応されるため、Geolocation API が動作します。
 
+モバイルブラウザ（iOS / Android, Safari / Chrome）で位置情報が正常に動作しない主な原因
+- HTTPS（安全なコンテキスト）が使われていない（Geolocation API は通常 HTTPS または localhost のみ有効）
+- ブラウザのサイト単位の位置情報アクセスが「拒否」または「ブロック」されている
+- OS（端末）の位置情報サービスがオフになっている
+- ブラウザのプライベート/シークレットモードやコンテンツブロッカー（広告・プライバシー拡張）が許可ダイアログや位置情報取得を妨げている
+- WebView / in-app ブラウザでは位置情報が制限される場合がある（アプリ側で許可が必要）
+- 位置情報の精度低下や省電力モードにより位置取得に失敗する
+- ネットワークが遮断されており、推定位置（IPベース等）や補助手法が使えない
+- ブラウザ・OSのバグやバージョン差異（特に古いiOS Safariの仕様差）
+
+トラブルシュートのチェックリスト（ユーザー向け）
+1. サイトが HTTPS で提供されているか確認（GitHub Pages 等を利用）
+2. ブラウザの設定でサイトの位置情報アクセスが許可されているか確認
+3. 端末の設定で位置情報サービスが有効になっているか確認
+4. コンテンツブロッカーやプライバシー拡張を無効化して再試行
+5. WebView やアプリ内ブラウザを避け、ネイティブブラウザ（Safari / Chrome）で試す
+
+今回の「優しい ASK（カスタム確認ダイアログ）」導入フロー（Mermaid）
+
+```mermaid
+flowchart TD
+   A[ユーザー: 「現在地を取得して登録する」ボタンをタップ] --> B[表示: カスタム確認ダイアログ]
+   B -->|キャンセル| F[代替: 東京都付近を表示 → タップで位置選択]
+   B -->|OK| C[ブラウザの位置情報許可ダイアログが表示]
+   C -->|許可| D[位置取得を試行]
+   C -->|拒否| E[表示: 許可拒否ダイアログ → 設定案内]
+   D -->|成功| G[マーカーを表示して登録画面へ]
+   D -->|失敗: 位置サービス無効等| H[表示: 位置サービス無効ダイアログ → 代替: タップで位置選択]
+   E --> F
+   H --> F
+   style A fill:#f9f,stroke:#333,stroke-width:1px
+   style B fill:#fffae6,stroke:#333
+   style C fill:#fff0f0,stroke:#333
+   style D fill:#e6ffed,stroke:#333
+   style E fill:#fff1f1,stroke:#333
+   style F fill:#eef6ff,stroke:#333
+   style G fill:#e6ffee,stroke:#333
+   style H fill:#fff7e6,stroke:#333
+```
+
+（注）Mermaid のレンダリングは GitHub 上の Markdown プレビューまたは Mermaid 対応のビューアで確認してください。
+
 ライセンス: MIT
