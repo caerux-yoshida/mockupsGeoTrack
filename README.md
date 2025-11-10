@@ -100,14 +100,14 @@ flowchart TD
    D -->|失敗: 位置サービス無効等| H[表示: 位置サービス無効ダイアログ → 代替: タップで位置選択]
    E --> F
    H --> F
-   style A fill:#f9f,stroke:#333,stroke-width:1px
-   style B fill:#fffae6,stroke:#333
-   style C fill:#fff0f0,stroke:#333
-   style D fill:#e6ffed,stroke:#333
-   style E fill:#fff1f1,stroke:#333
-   style F fill:#eef6ff,stroke:#333
-   style G fill:#e6ffee,stroke:#333
-   style H fill:#fff7e6,stroke:#333
+   style A fill:#f0f8ff,stroke:#333,stroke-width:1px,color:#000
+   style B fill:#fff8e1,stroke:#333,color:#000
+   style C fill:#ffecec,stroke:#333,color:#000
+   style D fill:#e6ffed,stroke:#333,color:#000
+   style E fill:#fff1f1,stroke:#333,color:#000
+   style F fill:#eef6ff,stroke:#333,color:#000
+   style G fill:#e6ffee,stroke:#333,color:#000
+   style H fill:#fff7e6,stroke:#333,color:#000
 ```
 
 （注）Mermaid のレンダリングは GitHub 上の Markdown プレビューまたは Mermaid 対応のビューアで確認してください。
