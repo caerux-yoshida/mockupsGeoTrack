@@ -207,10 +207,10 @@ function showDialog(title, message, buttons) {
 async function showInitialLocationConfirmDialog() {
   const result = await showDialog(
     '位置情報の利用確認',
-    '現在地を登録すると、あなたに関連性の高い情報が表示されます。位置情報の利用を許可しますか？許可しない場合でも、地図から手動で地点を選択できます。',
+    '現在地を地図に表示するために、位置情報の利用許可をお願いします。許可されない場合、手動で位置を選択できます。',
     [
-      { text: '許可する', value: true, primary: true },
-      { text: 'あとで', value: false, primary: false }
+      { text: 'OK', value: true, primary: true },
+      { text: 'キャンセル', value: false, primary: false }
     ]
   );
   return result;
@@ -220,7 +220,7 @@ async function showInitialLocationConfirmDialog() {
 function showPermissionDeniedDialog() {
   return showDialog(
     '位置情報の取得が許可されていません',
-    '現在地を利用するには、ブラウザの設定からこのサイトの位置情報アクセスを「許可」に変更してください。',
+    '位置情報の取得が拒否されました。現在地を利用するには、ブラウザまたは端末の設定からこのサイトの位置情報アクセスを許可してください。',
     [{ text: '閉じる', value: 'close', primary: true }]
   );
 }
@@ -228,8 +228,8 @@ function showPermissionDeniedDialog() {
 // 位置情報サービスが無効の場合のダイアログ
 function showLocationDisabledDialog() {
   return showDialog(
-    '位置情報サービスが無効です',
-    '端末の位置情報サービスがオフになっています。現在地を取得するには、お使いの端末の設定から位置情報サービスをオンにしてください。',
+    '端末の位置情報サービスが無効です',
+    '端末の位置情報サービスが無効です。設定からオンにしてください。',
     [{ text: '閉じる', value: 'close', primary: true }]
   );
 }
