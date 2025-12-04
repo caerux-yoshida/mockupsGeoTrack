@@ -141,14 +141,16 @@
         // --- 地図操作でピンを跳ねさせる ---
         let bounceTimeout = null;
         map.on('moveend', function() {
+          showCenterPin(); // 地図移動後も中央に固定
           bounceCenterPin();
           // 3秒後にもう一度跳ねる
           if (bounceTimeout) clearTimeout(bounceTimeout);
           bounceTimeout = setTimeout(bounceCenterPin, 3000);
         });
-        // 地図操作中はタイマーをリセット
+        // 地図操作中はタイマーをリセット＆中央固定
         map.on('movestart', function() {
           if (bounceTimeout) clearTimeout(bounceTimeout);
+          showCenterPin(); // ドラッグ中も中央に固定
         });
 
         // --- 決定ボタンのUI制御 ---
