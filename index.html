@@ -53,22 +53,31 @@
         const map = createMap('map', center, 13);
         if (stored) addOrUpdateUserMarker(map, stored.lat, stored.lon, 'あなたの登録地点');
 
-        // ページアクセス時に自動で位置情報取得
+        // ページアクセス時に必ずパーミッション確認（getCurrentPosition）
         (async function () {
           statusEl.textContent = '位置情報取得中…';
           try {
-            const loc = await requestInitialPosition();
-            statusEl.textContent = '地図をドラッグして位置を調整し、「この位置で決定」を押してください。';
+            const loc = await new Promise((resolve, reject) => {
+              if (!navigator.geolocation) {
+                reject(new Error('no-geolocation'));
+                return;
+              }
+              navigator.geolocation.getCurrentPosition(
+                pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                err => reject(err),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+              );
+            });
             map.setView([loc.lat, loc.lon], 16);
             showCenterPin();
-            btnSave.style.display = '';
-            // btnCancel.style.display = ''; 削除
+            btnSave.style.display = 'block';
           } catch (err) {
-            // 位置情報取得失敗時の案内テキストは表示しない
+            if (err.code === 1) { // PERMISSION_DENIED
+              await showDialog('位置情報の取得が許可されていません', '位置情報の取得が拒否されました。現在地を利用するには、ブラウザまたは端末の設定からこのサイトの位置情報アクセスを許可してください。', [{ text: '閉じる', value: 'close', primary: true }]);
+            }
             map.setView(DEFAULT_TOKYO_CENTER, 13);
             showCenterPin();
-            btnSave.style.display = '';
-            // btnCancel.style.display = ''; 削除
+            btnSave.style.display = 'block';
           }
         })();
 
