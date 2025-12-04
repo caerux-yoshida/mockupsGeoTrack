@@ -70,7 +70,7 @@
               statusEl.textContent = '位置情報を取得できません。東京都付近を表示します。地図をタップしてピンを立ててください。';
             }
             map.setView(DEFAULT_TOKYO_CENTER, 13);
-            showCenterPin();
+            showCenterPin(); // 手動調整時も必ず中央PIN表示
             btnSave.style.display = '';
             btnCancel.style.display = '';
           }
