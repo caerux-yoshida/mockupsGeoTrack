@@ -1,3 +1,64 @@
+/* Center pin animation */
+#center-pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -100%);
+  z-index: 500;
+  pointer-events: none;
+  transition: filter 0.2s;
+}
+
+#center-pin.bounce {
+  animation: pin-bounce 0.7s cubic-bezier(.25,.46,.45,.94) 1;
+}
+
+@keyframes pin-bounce {
+  0%   { transform: translate(-50%, -100%) scale(1); }
+  20%  { transform: translate(-50%, -120%) scale(1.1,0.9); }
+  40%  { transform: translate(-50%, -80%) scale(0.95,1.1); }
+  60%  { transform: translate(-50%, -110%) scale(1.05,0.95); }
+  80%  { transform: translate(-50%, -90%) scale(0.98,1.02); }
+  100% { transform: translate(-50%, -100%) scale(1); }
+}
+
+/* Map and button layout for mobile */
+.map {
+  position: relative;
+  min-height: 320px;
+  height: 50vh;
+  margin-bottom: 60px;
+}
+
+#btn-save-location {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: 90vw;
+  max-width: 420px;
+  font-size: 1.15rem;
+  padding: 16px 0;
+  background: #0b5cff;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  z-index: 1001;
+  display: none;
+}
+
+@media (min-width: 700px) {
+  #btn-save-location {
+    max-width: 320px;
+    font-size: 1rem;
+    padding: 12px 0;
+  }
+  .map {
+    height: 400px;
+    margin-bottom: 40px;
+  }
+}
 /* Basic styles for mobile-first layout */
 html,body{
   height:100%;

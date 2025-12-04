@@ -58,9 +58,9 @@
           statusEl.textContent = '位置情報取得中…';
           try {
             const loc = await requestInitialPosition();
-            statusEl.textContent = '位置が取得されました。地図をタップしてピンを立て、確定してください。';
+            statusEl.textContent = '地図をドラッグして位置を調整し、「この位置で決定」を押してください。';
             map.setView([loc.lat, loc.lon], 16);
-            adjustableMarker = enableTapToPlaceMarker(map, loc.lat, loc.lon, 'タップで位置を変更');
+            showCenterPin();
             btnSave.style.display = '';
             btnCancel.style.display = '';
           } catch (err) {
@@ -70,32 +70,81 @@
               statusEl.textContent = '位置情報を取得できません。東京都付近を表示します。地図をタップしてピンを立ててください。';
             }
             map.setView(DEFAULT_TOKYO_CENTER, 13);
-            adjustableMarker = enableTapToPlaceMarker(map, DEFAULT_TOKYO_CENTER[0], DEFAULT_TOKYO_CENTER[1], 'タップで位置を変更');
+            showCenterPin();
             btnSave.style.display = '';
             btnCancel.style.display = '';
           }
         });
 
         btnSave.addEventListener('click', function (){
-          if (!adjustableMarker){ alert('保存する位置がありません（地図をタップしてピンを置いてください）'); return; }
-          disableTapToPlace(map);
-          const pos = getMarkerLatLng(adjustableMarker);
-          const saved = saveLocation(pos.lat, pos.lon);
-          addOrUpdateUserMarker(map, pos.lat, pos.lon, 'あなたの登録地点');
+          // 地図中央の緯度経度を取得
+          const center = map.getCenter();
+          const saved = saveLocation(center.lat, center.lng);
+          addOrUpdateUserMarker(map, center.lat, center.lng, 'あなたの登録地点');
           statusEl.textContent = `登録済み: ${saved.lat.toFixed(6)}, ${saved.lon.toFixed(6)}`;
-          removeAdjustableMarker(map);
-          adjustableMarker = null;
+          hideCenterPin();
           btnSave.style.display = 'none';
           btnCancel.style.display = 'none';
         });
 
+
         btnCancel.addEventListener('click', function (){
-          removeAdjustableMarker(map);
-          adjustableMarker = null;
+          hideCenterPin();
           btnSave.style.display = 'none';
           btnCancel.style.display = 'none';
           updateStatus();
         });
+
+        // 地図中央にピンを重ねて表示する関数
+        // --- 中央ピン表示・アニメーション ---
+        function showCenterPin() {
+          let pin = document.getElementById('center-pin');
+          if (!pin) {
+            pin = document.createElement('div');
+            pin.id = 'center-pin';
+            pin.innerHTML = '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" style="width:36px; height:54px;">';
+            document.getElementById('map').appendChild(pin);
+          } else {
+            pin.style.display = '';
+          }
+          // 初回表示時にもアニメーション
+          bounceCenterPin();
+        }
+        function hideCenterPin() {
+          const pin = document.getElementById('center-pin');
+          if (pin) pin.style.display = 'none';
+        }
+        function bounceCenterPin() {
+          const pin = document.getElementById('center-pin');
+          if (!pin) return;
+          pin.classList.remove('bounce');
+          // 再トリガー用
+          void pin.offsetWidth;
+          pin.classList.add('bounce');
+        }
+
+        // --- 地図操作でピンを跳ねさせる ---
+        let bounceTimeout = null;
+        map.on('moveend', function() {
+          bounceCenterPin();
+          // 3秒後にもう一度跳ねる
+          if (bounceTimeout) clearTimeout(bounceTimeout);
+          bounceTimeout = setTimeout(bounceCenterPin, 3000);
+        });
+        // 地図操作中はタイマーをリセット
+        map.on('movestart', function() {
+          if (bounceTimeout) clearTimeout(bounceTimeout);
+        });
+
+        // --- 決定ボタンのUI制御 ---
+        // ボタンを地図下部に常時表示（地図操作時も見やすく）
+        btnSave.style.position = 'fixed';
+        btnSave.style.left = '50%';
+        btnSave.style.bottom = '18px';
+        btnSave.style.transform = 'translateX(-50%)';
+        btnSave.style.width = '90vw';
+        btnSave.style.maxWidth = '420px';
+        btnSave.style.zIndex = '1001';
 
         updateStatus();
       });
