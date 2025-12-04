@@ -98,16 +98,31 @@
         // 地図中央にピンを重ねて表示する関数
         // --- 中央ピン表示・アニメーション ---
         function showCenterPin() {
+          // #mapにposition:relativeを強制
+          const mapDiv = document.getElementById('map');
+          mapDiv.style.position = 'relative';
           let pin = document.getElementById('center-pin');
           if (!pin) {
             pin = document.createElement('div');
             pin.id = 'center-pin';
+            pin.style.position = 'absolute';
+            pin.style.left = '50%';
+            pin.style.top = '50%';
+            pin.style.transform = 'translate(-50%, -100%)';
+            pin.style.zIndex = '500';
+            pin.style.pointerEvents = 'none';
             pin.innerHTML = '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" style="width:36px; height:54px;">';
-            document.getElementById('map').appendChild(pin);
+            mapDiv.appendChild(pin);
           } else {
             pin.style.display = '';
+            // スタイル再適用
+            pin.style.position = 'absolute';
+            pin.style.left = '50%';
+            pin.style.top = '50%';
+            pin.style.transform = 'translate(-50%, -100%)';
+            pin.style.zIndex = '500';
+            pin.style.pointerEvents = 'none';
           }
-          // 初回表示時にもアニメーション
           bounceCenterPin();
         }
         function hideCenterPin() {
