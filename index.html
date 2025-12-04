@@ -51,6 +51,7 @@
         const stored = getStoredLocation();
         const center = stored ? [stored.lat, stored.lon] : DEFAULT_TOKYO_CENTER;
         const map = createMap('map', center, 13);
+        setTimeout(() => { map.invalidateSize(); }, 100);
         if (stored) addOrUpdateUserMarker(map, stored.lat, stored.lon, 'あなたの登録地点');
 
         // ページアクセス時に必ずパーミッション確認（getCurrentPosition）
