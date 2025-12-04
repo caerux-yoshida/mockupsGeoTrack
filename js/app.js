@@ -184,7 +184,7 @@ function showDialog(title, message, buttons) {
 
     const content = overlay.querySelector('.dialog-content');
     content.querySelector('.dialog-title').textContent = title;
-    content.querySelector('.dialog-message').textContent = message;
+    content.querySelector('.dialog-message').innerHTML = message;
 
     const buttonsContainer = content.querySelector('.dialog-buttons');
     buttonsContainer.innerHTML = '';
@@ -203,18 +203,6 @@ function showDialog(title, message, buttons) {
   });
 }
 
-// 初期設定時の位置情報利用確認ダイアログ
-async function showInitialLocationConfirmDialog() {
-  const result = await showDialog(
-    '位置情報の利用確認',
-    '現在地を地図に表示するために、位置情報の利用許可をお願いします。許可されない場合、手動で位置を選択できます。',
-    [
-      { text: 'OK', value: true, primary: true },
-      { text: 'キャンセル', value: false, primary: false }
-    ]
-  );
-  return result;
-}
 
 // 位置情報が拒否された場合のダイアログ
 function showPermissionDeniedDialog() {
@@ -234,7 +222,7 @@ function showLocationDisabledDialog() {
   );
 }
 
-// 初期設定用の位置情報取得（確認ダイアログ付き）
+// 初期設定用の位置情報取得（ダイアログなし）
 async function requestInitialPosition() {
   if (!navigator.geolocation) {
     await showDialog(
@@ -244,13 +232,6 @@ async function requestInitialPosition() {
     );
     throw new Error('no-geolocation');
   }
-
-  // まず初期設定の確認ダイアログを表示
-  const shouldProceed = await showInitialLocationConfirmDialog();
-  if (!shouldProceed) {
-    throw new Error('user-cancelled');
-  }
-
   // 位置情報を取得（このときブラウザのパーミッション確認が表示される）
   return new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(

@@ -20,9 +20,9 @@
     <main>
       <section class="controls">
         <p id="status">位置情報未登録です。</p>
-        <button id="btn-get-location">現在地を取得して登録する</button>
-        <button id="btn-save-location" style="display:none; margin-left:8px">確定して登録</button>
-        <button id="btn-cancel-location" style="display:none; margin-left:8px">キャンセル</button>
+        <!-- <button id="btn-get-location">現在地を取得して登録する</button> 削除 -->
+        <button id="btn-save-location" style="display:none;">この場所で決定</button>
+        <!-- <button id="btn-cancel-location" style="display:none; margin-left:8px">キャンセル</button> 削除 -->
       </section>
 
       <div id="map" class="map" aria-label="地図"></div>
@@ -36,7 +36,7 @@
         const statusEl = document.getElementById('status');
   const btn = document.getElementById('btn-get-location');
   const btnSave = document.getElementById('btn-save-location');
-  const btnCancel = document.getElementById('btn-cancel-location');
+  // const btnCancel = document.getElementById('btn-cancel-location'); 削除
 
         function updateStatus() {
           const stored = getStoredLocation();
@@ -53,8 +53,8 @@
         const map = createMap('map', center, 13);
         if (stored) addOrUpdateUserMarker(map, stored.lat, stored.lon, 'あなたの登録地点');
 
-        let adjustableMarker = null;
-        btn.addEventListener('click', async function () {
+        // ページアクセス時に自動で位置情報取得
+        (async function () {
           statusEl.textContent = '位置情報取得中…';
           try {
             const loc = await requestInitialPosition();
@@ -62,38 +62,43 @@
             map.setView([loc.lat, loc.lon], 16);
             showCenterPin();
             btnSave.style.display = '';
-            btnCancel.style.display = '';
+            // btnCancel.style.display = ''; 削除
           } catch (err) {
-            if (err.message === 'user-cancelled') {
-              statusEl.textContent = '東京都付近を表示します。地図をタップしてピンを立ててください。';
-            } else {
-              statusEl.textContent = '位置情報を取得できません。東京都付近を表示します。地図をタップしてピンを立ててください。';
-            }
+            // 位置情報取得失敗時の案内テキストは表示しない
             map.setView(DEFAULT_TOKYO_CENTER, 13);
-            showCenterPin(); // 手動調整時も必ず中央PIN表示
+            showCenterPin();
             btnSave.style.display = '';
-            btnCancel.style.display = '';
+            // btnCancel.style.display = ''; 削除
           }
-        });
+        })();
 
-        btnSave.addEventListener('click', function (){
-          // 地図中央の緯度経度を取得
+        // 地図中央の位置情報送信（保存・マーカー表示・ステータス更新）
+        async function sendCenterLocation() {
           const center = map.getCenter();
-          const saved = saveLocation(center.lat, center.lng);
-          addOrUpdateUserMarker(map, center.lat, center.lng, 'あなたの登録地点');
-          statusEl.textContent = `登録済み: ${saved.lat.toFixed(6)}, ${saved.lon.toFixed(6)}`;
-          hideCenterPin();
-          btnSave.style.display = 'none';
-          btnCancel.style.display = 'none';
-        });
+          const lat = center.lat.toFixed(6);
+          const lon = center.lng.toFixed(6);
+          const message = `<div style='margin-bottom:10px;'>緯度：${lat}<br>経度：${lon}</div><div style='font-size:0.95em; color:#d00; margin-bottom:10px;'>ご注意<br>この位置情報を送信すると、あなたの現在地が特定される可能性があります。<br>送信前に少し位置をズラすなど調整をした上で送信してください。</div>`;
+          const result = await showDialog(
+            '選択された位置',
+            message,
+            [
+              { text: '送信', value: 'send', primary: true },
+              { text: 'キャンセル', value: 'cancel', primary: false }
+            ]
+          );
+          if (result === 'send') {
+            const saved = saveLocation(center.lat, center.lng);
+            addOrUpdateUserMarker(map, center.lat, center.lng, 'あなたの登録地点');
+            statusEl.textContent = `登録済み: ${saved.lat.toFixed(6)}, ${saved.lon.toFixed(6)}`;
+            hideCenterPin();
+            btnSave.style.display = 'none';
+            await showDialog('登録完了', '位置情報の登録が完了しました。', [{ text: 'OK', value: 'ok', primary: true }]);
+          }
+        }
+        btnSave.addEventListener('click', sendCenterLocation);
 
 
-        btnCancel.addEventListener('click', function (){
-          hideCenterPin();
-          btnSave.style.display = 'none';
-          btnCancel.style.display = 'none';
-          updateStatus();
-        });
+        // キャンセルボタン削除のためイベントも除去
 
         // 地図中央にピンを重ねて表示する関数
         // --- 中央ピン表示・アニメーション ---
@@ -110,9 +115,14 @@
             pin.style.top = '50%';
             pin.style.transform = 'translate(-50%, -100%)';
             pin.style.zIndex = '500';
-            pin.style.pointerEvents = 'none';
+            pin.style.pointerEvents = 'auto';
             pin.innerHTML = '<img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" style="width:36px; height:54px;">';
             mapDiv.appendChild(pin);
+            // タップで位置情報送信
+            pin.addEventListener('click', function(e) {
+              e.stopPropagation();
+              sendCenterLocation();
+            });
           } else {
             pin.style.display = '';
             // スタイル再適用
@@ -121,7 +131,7 @@
             pin.style.top = '50%';
             pin.style.transform = 'translate(-50%, -100%)';
             pin.style.zIndex = '500';
-            pin.style.pointerEvents = 'none';
+            pin.style.pointerEvents = 'auto';
           }
           bounceCenterPin();
         }
@@ -162,6 +172,7 @@
         btnSave.style.width = '90vw';
         btnSave.style.maxWidth = '420px';
         btnSave.style.zIndex = '1001';
+        btnSave.style.display = 'block';
 
         updateStatus();
       });

@@ -10,15 +10,13 @@
 }
 
 #center-pin.bounce {
-  animation: pin-bounce 0.7s cubic-bezier(.25,.46,.45,.94) 1;
+  animation: pin-bounce 0.35s cubic-bezier(.25,.46,.45,.94) 1;
 }
 
 @keyframes pin-bounce {
   0%   { transform: translate(-50%, -100%) scale(1); }
-  20%  { transform: translate(-50%, -120%) scale(1.1,0.9); }
-  40%  { transform: translate(-50%, -80%) scale(0.95,1.1); }
-  60%  { transform: translate(-50%, -110%) scale(1.05,0.95); }
-  80%  { transform: translate(-50%, -90%) scale(0.98,1.02); }
+  30%  { transform: translate(-50%, -110%) scale(1.07,0.93); }
+  60%  { transform: translate(-50%, -95%) scale(0.97,1.05); }
   100% { transform: translate(-50%, -100%) scale(1); }
 }
 
@@ -45,7 +43,7 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   z-index: 1001;
-  display: none;
+  display: block;
 }
 
 @media (min-width: 700px) {
