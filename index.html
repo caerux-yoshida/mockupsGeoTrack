@@ -143,7 +143,7 @@
             pin.style.zIndex = '500';
             pin.style.pointerEvents = 'auto';
           }
-          bounceCenterPin();
+          // bounceCenterPin()はmoveendのみで呼ぶ
         }
         function hideCenterPin() {
           const pin = document.getElementById('center-pin');
@@ -167,7 +167,7 @@
           if (bounceTimeout) clearTimeout(bounceTimeout);
           bounceTimeout = setTimeout(bounceCenterPin, 3000);
         });
-        // 地図操作中はタイマーをリセット＆中央固定
+        // 地図操作中はタイマーをリセット＆中央固定（アニメーションは発火しない）
         map.on('movestart', function() {
           if (bounceTimeout) clearTimeout(bounceTimeout);
           showCenterPin(); // ドラッグ中も中央に固定
